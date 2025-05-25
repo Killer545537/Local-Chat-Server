@@ -57,6 +57,9 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0
     devDependencies:
+      '@drizzle-team/studio':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.1
@@ -130,6 +133,9 @@ packages:
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
+
+  '@drizzle-team/studio@1.0.0':
+    resolution: {integrity: sha512-2yx/xYKtaedWrcxnAzvwE/bzfbu5anmkL2X3WoHHhpkqXbL9lViRv4mmvm2f1irlfYKOMKXcpKv+jtpbJS4C8g==}
 
   '@emnapi/core@1.4.3':
     resolution: {integrity: sha512-4m62DuCE07lw01soJwPiBGC0nAww0Q+RY70VZ+n49yDIO13yyinhbWCeNnaob0lakDtWQzSdtNWzJeOJt2ma+g==}
@@ -2641,6 +2647,8 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.25
 
   '@drizzle-team/brocli@0.10.2': {}
+
+  '@drizzle-team/studio@1.0.0': {}
 
   '@emnapi/core@1.4.3':
     dependencies:
