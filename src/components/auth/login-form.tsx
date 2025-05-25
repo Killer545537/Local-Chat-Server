@@ -7,12 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { z } from 'zod';
-
-const loginSchema = z.object({
-    email: z.string().email({ message: 'Invalid email address' }),
-    password: z.string().min(1, { message: 'Password cannot be empty' }), // Basic check, API handles actual auth
-});
+import { loginSchema } from '@/validations/login-schema';
 
 export const LoginForm = () => {
     const router = useRouter();

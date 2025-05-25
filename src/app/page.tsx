@@ -1,36 +1,43 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-// This is a placeholder function.
-// Replace this with your actual logic to get and validate the JWT token.
-const isAuthenticated = (): boolean => {
-    if (typeof window !== 'undefined') {
-        // Example: Check for a token in localStorage
-        const token = localStorage.getItem('jwt_token');
-        // Add your token validation logic here if needed
-        return !!token;
-    }
-    return false;
-};
 
 export default function HomePage() {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (isAuthenticated()) {
-            // User is signed in, redirect to the chat page
-            router.replace('/chat');
-        } else {
-            // User is not signed in, redirect to the sign-up page
-            router.replace('/sign-up');
-        }
+        const checkAuthStatus = async () => {
+            try {
+                const response = await fetch('/api/auth/check-status');
+                if (!response.ok) {
+                    console.error('Auth check failed with status:', response.status);
+                    router.replace('/sign-up');
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.isAuthenticated) {
+                    router.replace('/chat');
+                } else {
+                    router.replace('/sign-up');
+                }
+            } catch (error) {
+                console.error('Error checking authentication status:', error);
+                router.replace('/sign-up');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        void checkAuthStatus();
     }, [router]);
 
-    // Optionally, render a loading state or null while redirecting
-    // This prevents any flash of content before the redirect happens.
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
     return null;
-    // Or a loading component:
-    // return <div>Loading...</div>;
 }

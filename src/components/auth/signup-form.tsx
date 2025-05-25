@@ -7,13 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { z } from 'zod';
+import { signupSchema } from '@/validations/signup-schema';
 
-const signupSchema = z.object({
-    userName: z.string().min(3, { message: 'Username must be at least 3 characters long' }),
-    email: z.string().email({ message: 'Invalid email address' }),
-    password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
-});
 
 export const SignupForm = () => {
     const router = useRouter();
