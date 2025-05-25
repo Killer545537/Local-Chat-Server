@@ -28,7 +28,8 @@
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "tw-animate-css": "^1.3.0"
+    "tw-animate-css": "^1.3.0",
+    "zod": "^3.25.28"
   },
   "devDependencies": {
     "@drizzle-team/studio": "^1.0.0",

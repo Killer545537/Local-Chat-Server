@@ -21,7 +21,7 @@ export const GET = async (request: NextRequest) => {
     try {
         const allMessages = await getMessages({ limit: queryLimit, order: 'desc' });
 
-        console.log(`Successfullt processed request. Returning ${allMessages.length} messages.`);
+        console.log(`Successfully processed request. Returning ${allMessages.length} messages.`);
 
         return NextResponse.json({ messages: allMessages }, { status: 200 });
     } catch (error) {
