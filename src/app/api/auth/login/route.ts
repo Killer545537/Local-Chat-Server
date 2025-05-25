@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loginSchema } from '@/validations/login-schema'; // Ensure this path is correct
+import { loginSchema } from '@/validations/login-schema';
 import { getUserByEmail } from '@/db/user_query';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';

@@ -49,12 +49,12 @@ export const POST = async (request: NextRequest) => {
 
         const newMessage = await addMessage({ senderId, content });
 
-        console.log(`Successfullt created new message with id: ${newMessage.id}`);
+        console.log(`Successfully created new message with id: ${newMessage.id}`);
         return NextResponse.json({ message: 'Message created successfully', data: newMessage }, { status: 201 });
     } catch (error) {
         if (error instanceof SyntaxError) {
             console.error('Invalid JSON in request body:', error);
-            return NextResponse.json({ error: 'Invalud JSON in request body' }, { status: 400 });
+            return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
         }
 
         console.error(`Failed to process POST request:`, error instanceof Error ? error.message : error);

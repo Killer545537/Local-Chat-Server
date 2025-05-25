@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import React from 'react';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
     title: 'Local Chat Server',
@@ -17,8 +18,10 @@ export default function RootLayout({
         <body
             className={'antialiased'}
         >
+        <Toaster richColors position="bottom-left" />
         {children}
         </body>
         </html>
-    );
+    )
+        ;
 }
