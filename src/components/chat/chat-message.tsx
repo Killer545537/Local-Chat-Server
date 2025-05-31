@@ -9,7 +9,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
     const alignment = message.isOwnMessage ? 'justify-end' : 'justify-start';
     const bgColor = message.isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted';
 
-    const senderInitial = message.sender.substring(0, 1).toUpperCase();
+    const senderInitial = (message.sender || 'Anonymous').substring(0, 1).toUpperCase();
 
     return (
         <div className={`flex items-end gap-2 ${alignment} mb-4`}>
