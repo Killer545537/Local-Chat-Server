@@ -63,8 +63,14 @@ export default function ChatPage() {
                 const msgRes = await fetch('/api/messages');
                 if (msgRes.ok) {
                     const msgData = await msgRes.json();
-                    if (Array.isArray(msgData.data)) {
-                        const loadedMessages: Message[] = msgData.data.map((m: any) => ({
+                    if (Array.isArray(msgData.messages)) {
+                        const loadedMessages: Message[] = msgData.messages.map((m: {
+                            id: string,
+                            content: string,
+                            senderId: string,
+                            userName: string,
+                            sentAt: Date
+                        }) => ({
                             id: m.id,
                             text: m.content,
                             sender: m.userName,

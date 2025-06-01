@@ -13,18 +13,17 @@ app.prepare()
     .then(() => {
         // Create HTTP server
         const server = http.createServer((req, res) => {
-            const parsedUrl = parse(req.url, true);
+            const parsedUrl = parse(req.url || '', true);
 
             // Let Next.js handle all HTTP requests
             handle(req, res, parsedUrl);
         });
 
         // Initialize Socket.IO with our HTTP server
-        const io = initSocketIOServer(server);
+        const _io = initSocketIOServer(server);
 
         // Start the server
-        server.listen(port, (err) => {
-            if (err) throw err;
+        server.listen(port, () => {
             console.log(`> Server listening on http://localhost:${port}`);
             console.log(`> WebSocket server available at ws://localhost:${port}/ws/socket.io`);
         });

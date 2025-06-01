@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addMessage, getMessages } from '@/db/message_query';
+import { db } from '@/db';
+import { messages, users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const GET = async (request: NextRequest) => {
     console.log(`Received GET request. URL: ${request.nextUrl.pathname}${request.nextUrl.search}`);
@@ -49,8 +52,20 @@ export const POST = async (request: NextRequest) => {
 
         const newMessage = await addMessage({ senderId, content });
 
+        const [savedMessage] = await db
+            .select({
+                id: messages.id,
+                content: messages.content,
+                senderId: messages.senderId,
+                sentAt: messages.sentAt,
+                userName: users.userName,
+            })
+            .from(messages)
+            .leftJoin(users, eq(users.id, messages.senderId))
+            .where(eq(messages.id, newMessage.id));
+
         console.log(`Successfully created new message with id: ${newMessage.id}`);
-        return NextResponse.json({ message: 'Message created successfully', data: newMessage }, { status: 201 });
+        return NextResponse.json({ message: 'Message created successfully', data: savedMessage }, { status: 201 });
     } catch (error) {
         if (error instanceof SyntaxError) {
             console.error('Invalid JSON in request body:', error);
