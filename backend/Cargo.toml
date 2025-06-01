@@ -1,0 +1,14 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dotenvy = "0.15.7"
+dotenvy_macro = "0.15.7"
+anyhow = "1.0.98"
+actix-web = "4.11.0"
+actix-cors = "0.7.1"
+actix-web-actors = "4.3.1+deprecated"
+serde = {version = "1.0.219", features = ["derive"]}
+serde_json = "1.0.140"
