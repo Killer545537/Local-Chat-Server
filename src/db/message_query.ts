@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { messages } from '@/db/schema';
-import { asc, desc } from 'drizzle-orm';
+import { messages, users } from '@/db/schema';
+import { asc, desc, eq } from 'drizzle-orm';
 
 interface GetMessagesOptions {
     limit?: number,
@@ -11,7 +11,15 @@ export const getMessages = async ({ limit, order = 'desc' }: GetMessagesOptions)
     console.log(`Attempting to fetch messages/ Limit: ${limit}, Order: ${order}`);
 
     try {
-        const query = db.select().from(messages)
+        const query = db.select({
+            id: messages.id,
+            senderId: messages.senderId,
+            content: messages.content,
+            sentAt: messages.sentAt,
+            userName: users.userName,
+        })
+            .from(messages)
+            .leftJoin(users, eq(users.id, messages.senderId))
             .orderBy(order === 'asc' ? asc(messages.sentAt) : desc(messages.sentAt));
 
         if (limit !== undefined && limit > 0) {

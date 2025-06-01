@@ -5,146 +5,201 @@ import { ChatHeader } from '@/components/chat/chat-header';
 import { ChatMessageList } from '@/components/chat/chat-message-list';
 import { ChatInput } from '@/components/chat/chat-input';
 import { Message } from '@/types/chat';
+import { io, Socket } from 'socket.io-client';
 
-// TODO: Replace with actual user identification logic.
-// This might involve an API call to get current user details based on the session/token.
-const MOCK_USER_ID = 'currentUser123'; // Placeholder for the current user's ID
-const MOCK_USER_NAME = 'You'; // Placeholder for the current user's display name
+// Define types used in this component
+interface CurrentUser {
+    id: string;
+    userName: string;
+    email?: string;
+}
 
 export default function ChatPage() {
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
-    const [isLoadingMessages, setIsLoadingMessages] = useState(true);
     const [isSendingMessage, setIsSendingMessage] = useState(false);
-    const [userCount, setUserCount] = useState(1); // Placeholder, update with real logic
+    const [userCount, setUserCount] = useState(0);
+    const [socket, setSocket] = useState<Socket | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Fetch initial messages
-    const fetchMessages = useCallback(async () => {
-        setIsLoadingMessages(true);
-        try {
-            // Fetch last 50 messages, or adjust as needed
-            const response = await fetch('/api/messages?limit=50');
-            if (!response.ok) {
-                console.error('Failed to fetch messages:', response.status, await response.text());
-                setMessages([]);
-                return;
+    // Fetch current user from JWT cookie
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) {
+                    throw new Error('Not authenticated');
+                }
+
+                const data = await response.json();
+                setCurrentUser({
+                    id: data.user.id,
+                    userName: data.user.userName,
+                    email: data.user.email,
+                });
+            } catch (error) {
+                console.error('Error fetching current user:', error);
+                window.location.href = '/login'; // Redirect to login
+            } finally {
+                setIsLoading(false);
             }
-            const data = await response.json();
-            if (!data.messages || !Array.isArray(data.messages)) {
-                console.error('Fetched data does not contain an array of messages:', data);
-                setMessages([]);
-                return;
-            }
+        };
 
-            const transformedMessages = data.messages.map((msg: any) => ({
-                id: msg.id,
-                text: msg.content,
-                // TODO: Replace with actual sender name resolution if sender_id is not the display name
-                sender: msg.sender_id === MOCK_USER_ID ? MOCK_USER_NAME : `User ${String(msg.sender_id).substring(0, 6)}`,
-                isOwnMessage: msg.sender_id === MOCK_USER_ID,
-                timestamp: msg.created_at,
-            })).sort((a: Message, b: Message) =>
-                new Date(a.timestamp as string).getTime() - new Date(b.timestamp as string).getTime(),
-            ); // Sort by timestamp ascending
-
-            setMessages(transformedMessages);
-        } catch (error) {
-            console.error('Error fetching messages:', error);
-            setMessages([]);
-        } finally {
-            setIsLoadingMessages(false);
-        }
-    }, []); // MOCK_USER_ID and MOCK_USER_NAME are stable
+        fetchCurrentUser();
+    }, []);
 
     useEffect(() => {
-        void fetchMessages();
-        // TODO: Implement logic to fetch and update userCount (e.g., via WebSockets or polling)
-        // For example, you might set up a WebSocket connection here to listen for user count changes.
-    }, [fetchMessages]);
+        const fetchCurrentUserAndMessages = async () => {
+            try {
+                const userRes = await fetch('/api/auth/me');
+                if (!userRes.ok) throw new Error('Not authenticated');
+                const userData = await userRes.json();
+                setCurrentUser({
+                    id: userData.user.id,
+                    userName: userData.user.userName,
+                    email: userData.user.email,
+                });
 
-    const handleSendMessage = async (messageText: string) => {
+                const msgRes = await fetch('/api/messages');
+                if (msgRes.ok) {
+                    const msgData = await msgRes.json();
+                    if (Array.isArray(msgData.messages)) {
+                        const loadedMessages: Message[] = msgData.messages.map((m: {
+                            id: string,
+                            content: string,
+                            senderId: string,
+                            userName: string,
+                            sentAt: Date
+                        }) => ({
+                            id: m.id,
+                            text: m.content,
+                            sender: m.userName,
+                            senderId: m.senderId,
+                            isOwnMessage: m.senderId === userData.user.id,
+                            timestamp: new Date(m.sentAt),
+                        }));
+                        setMessages(loadedMessages);
+                    } else {
+                        setMessages([]); // or handle error
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user or messages:', error);
+                window.location.href = '/login';
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchCurrentUserAndMessages();
+    }, []);
+
+    // Set up WebSocket connection once we have user data
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const socketInstance = io({
+            path: '/ws/socket.io',
+            autoConnect: true,
+            reconnection: true,
+            reconnectionAttempts: 5,
+            transports: ['websocket', 'polling'],
+        });
+
+        socketInstance.on('connect', () => {
+            console.log('Connected to WebSocket server');
+
+            // Authenticate with socket server
+            socketInstance.emit('authenticate', {
+                userId: currentUser.id,
+                userName: currentUser.userName,
+            });
+        });
+
+        socketInstance.on('auth_success', () => {
+            console.log('Socket authentication successful');
+        });
+
+        socketInstance.on('user_count_update', (data) => {
+            setUserCount(data.count);
+        });
+
+        socketInstance.on('new_message', (data) => {
+            const newMessage: Message = {
+                id: data.id,
+                text: data.content,
+                sender: data.sender_name,
+                senderId: data.sender_id,
+                isOwnMessage: data.sender_id === currentUser.id,
+                timestamp: new Date(data.sent_at),
+            };
+
+            setMessages(prevMessages => [...prevMessages, newMessage]);
+        });
+
+        socketInstance.on('error', (error) => {
+            console.error('Socket error:', error);
+        });
+
+        setSocket(socketInstance);
+
+        // Clean up on unmount
+        return () => {
+            socketInstance.disconnect();
+        };
+    }, [currentUser]);
+
+    const handleSendMessage = useCallback((messageText: string) => {
+        if (!currentUser || !socket) {
+            console.error('Cannot send message: User not authenticated or socket not connected');
+            return;
+        }
+
         if (!messageText.trim()) return;
 
         setIsSendingMessage(true);
-        const optimisticMessage: Message = {
-            id: `temp-${Date.now()}`,
-            text: messageText,
-            sender: MOCK_USER_NAME,
-            isOwnMessage: true,
-            timestamp: new Date().toISOString(),
-        };
 
-        setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
+        // Send message through WebSocket
+        socket.emit('send_message', { content: messageText });
 
-        try {
-            const response = await fetch('/api/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    senderId: MOCK_USER_ID, // This should ideally be derived from the authenticated session on the backend
-                    content: messageText,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.text();
-                console.error('Failed to send message:', response.status, errorData);
-                setMessages((prevMessages) =>
-                    prevMessages.filter((msg) => msg.id !== optimisticMessage.id),
-                );
-                // TODO: Optionally, show a toast notification for the error
-                return;
-            }
-
-            const newMessageData = await response.json();
-            if (!newMessageData.data || !newMessageData.data.id) {
-                console.error('Invalid response from server after sending message:', newMessageData);
-                // Revert optimistic update as we don't have a valid message
-                setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== optimisticMessage.id));
-                return;
-            }
-
-            const confirmedMessage: Message = {
-                id: newMessageData.data.id,
-                text: newMessageData.data.content,
-                sender: MOCK_USER_NAME, // Assuming the sender is the current user
-                isOwnMessage: true,
-                timestamp: newMessageData.data.created_at,
-            };
-
-            setMessages((prevMessages) =>
-                prevMessages.map((msg) =>
-                    msg.id === optimisticMessage.id ? confirmedMessage : msg,
-                ),
-            );
-        } catch (error) {
-            console.error('Error sending message:', error);
-            setMessages((prevMessages) =>
-                prevMessages.filter((msg) => msg.id !== optimisticMessage.id),
-            );
-            // TODO: Optionally, show a toast notification for the error
-        } finally {
+        // We don't add the message locally - the server will broadcast it back
+        setTimeout(() => {
             setIsSendingMessage(false);
-        }
-    };
+        }, 300);
+    }, [currentUser, socket]);
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col h-screen bg-muted/50 items-center justify-center p-4 text-center">
+                <p className="text-lg mb-4">Loading chat...</p>
+            </div>
+        );
+    }
+
+    if (!currentUser) {
+        return (
+            <div className="flex flex-col h-screen bg-muted/50 items-center justify-center p-4 text-center">
+                <p className="text-lg text-destructive mb-4">Not authenticated</p>
+                <p className="text-muted-foreground mb-6">Please log in to access the chat.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-screen bg-muted/50">
-            <ChatHeader name="Local Chat Room" userCount={userCount} />
+            <ChatHeader
+                name={`${currentUser.userName}'s Chat Room`}
+                userCount={userCount}
+            />
+
             <div className="flex-grow flex flex-col overflow-hidden">
-                {isLoadingMessages ? (
-                    <div className="flex-grow flex items-center justify-center text-muted-foreground">
-                        Loading messages...
-                    </div>
-                ) : (
-                    <ChatMessageList messages={messages} />
-                )}
-                <ChatInput
-                    onSendMessageAction={handleSendMessage}
-                    isLoading={isSendingMessage}
-                />
+                <ChatMessageList messages={messages} />
             </div>
+
+            <ChatInput
+                onSendMessageAction={handleSendMessage}
+                isLoading={isSendingMessage}
+            />
         </div>
     );
 }
