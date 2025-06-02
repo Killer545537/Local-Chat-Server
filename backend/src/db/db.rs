@@ -1,10 +1,11 @@
 use crate::models::models::{Message, NewUser, User};
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
-use tracing::{debug, info};
+use tracing::{debug, error, info};
 
+#[derive(Clone)]
 pub struct Database {
     pub pool: PgPool,
 }
@@ -47,7 +48,7 @@ impl Database {
     pub async fn add_user(&self, new_user: NewUser) -> Result<User> {
         debug!("Creating user with email: {}", new_user.email);
 
-        let user = sqlx::query_as!(
+        let result = sqlx::query_as!(
             User,
             r#"
             INSERT INTO users(name, email, password)
@@ -59,11 +60,23 @@ impl Database {
             new_user.password,
         )
         .fetch_one(&self.pool)
-        .await
-        .context("Failed to insert user")?;
+        .await;
 
-        info!(user_id = %user.id, "Successfully created new user");
+        match result {
+            Ok(user) => {
+                info!(user_id = %user.id, "Successfully created new user");
+                Ok(user)
+            }
+            Err(err) => {
+                if let Some(db_err) = err.as_database_error() {
+                    if db_err.code().as_deref() == Some("23505") {
+                        return Err(anyhow!("user_already_exists"));
+                    }
+                }
 
-        Ok(user)
+                error!("Database error while creating user: {}", err);
+                Err(anyhow!("Failed to insert user"))
+            }
+        }
     }
 }

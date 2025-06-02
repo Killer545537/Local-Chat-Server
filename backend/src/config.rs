@@ -1,5 +1,6 @@
 use dotenvy_macro::dotenv;
 
+#[derive(Clone)]
 pub struct Config {
     pub database_url: String,
     pub address: String,

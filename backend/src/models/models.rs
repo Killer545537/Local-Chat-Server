@@ -10,7 +10,7 @@ pub struct Message {
     pub sent_at: DateTime<Utc>,
 }
 
-#[derive(Validate, Deserialize)]
+#[derive(Validate, Deserialize, Clone)]
 pub struct NewUser {
     #[validate(length(min = 3, max = 50, message = "Name must be between 3-50 characters"))]
     pub name: String,

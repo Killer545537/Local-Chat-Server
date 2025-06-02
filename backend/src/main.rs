@@ -8,11 +8,12 @@ mod db;
 mod middleware;
 mod models;
 
-use crate::api::api::test_connection;
+use crate::api::api::{sign_up, test_connection};
 use crate::config::Config;
 use crate::db::db::Database;
 use crate::middleware::request_logger::request_middleware;
 use actix_web::middleware::from_fn;
+use actix_web::web::{Data, scope};
 use actix_web::{App, HttpServer, web};
 use anyhow::{Context, Result, anyhow};
 use dotenvy::dotenv;
@@ -30,6 +31,7 @@ async fn main() -> Result<()> {
     info!("DATABASE VARIABLES LOADED!");
 
     let config = Config::init();
+    let config_clone = config.clone();
 
     let db = match Database::establish_connection(&config.database_url).await {
         Ok(db) => {
@@ -51,10 +53,13 @@ async fn main() -> Result<()> {
     info!("Starting HTTP server at {}", config.address);
     HttpServer::new(move || {
         App::new()
+            .app_data(Data::new(db.clone()))
+            .app_data(Data::new(config.clone()))
             .wrap(from_fn(request_middleware))
-            .service(web::scope("/api").service(test_connection))
+            .service(test_connection)
+            .service(scope("/api").service(scope("/auth").service(sign_up)))
     })
-    .bind(&config.address)?
+    .bind(&config_clone.address)?
     .run()
     .await
     .context("Failed to start an HTTP server")
