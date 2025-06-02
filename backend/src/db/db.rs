@@ -1,4 +1,4 @@
-use crate::models::models::Message;
+use crate::models::models::{Message, NewUser, User};
 use anyhow::{Context, Result};
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
@@ -42,5 +42,28 @@ impl Database {
         info!("Retrieved {} messages", messages.len());
 
         Ok(messages)
+    }
+
+    pub async fn add_user(&self, new_user: NewUser) -> Result<User> {
+        debug!("Creating user with email: {}", new_user.email);
+
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            INSERT INTO users(name, email, password)
+            VALUES ($1, $2, $3)
+            RETURNING id, name, email
+            "#,
+            new_user.name,
+            new_user.email,
+            new_user.password,
+        )
+        .fetch_one(&self.pool)
+        .await
+        .context("Failed to insert user")?;
+
+        info!(user_id = %user.id, "Successfully created new user");
+
+        Ok(user)
     }
 }

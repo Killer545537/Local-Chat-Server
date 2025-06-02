@@ -1,12 +1,19 @@
+extern crate core;
+
 mod api;
+mod auth;
 mod chat;
 mod config;
 mod db;
+mod middleware;
 mod models;
 
+use crate::api::api::test_connection;
 use crate::config::Config;
 use crate::db::db::Database;
-use actix_web::{App, HttpServer};
+use crate::middleware::request_logger::request_middleware;
+use actix_web::middleware::from_fn;
+use actix_web::{App, HttpServer, web};
 use anyhow::{Context, Result, anyhow};
 use dotenvy::dotenv;
 use sqlx::migrate::Migrator;
@@ -42,9 +49,13 @@ async fn main() -> Result<()> {
     info!("Database migrations completed successfully");
 
     info!("Starting HTTP server at {}", config.address);
-    HttpServer::new(move || App::new())
-        .bind(&config.address)?
-        .run()
-        .await
-        .context("Failed to start an HTTP server")
+    HttpServer::new(move || {
+        App::new()
+            .wrap(from_fn(request_middleware))
+            .service(web::scope("/api").service(test_connection))
+    })
+    .bind(&config.address)?
+    .run()
+    .await
+    .context("Failed to start an HTTP server")
 }
