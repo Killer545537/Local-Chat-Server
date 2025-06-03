@@ -8,7 +8,7 @@ mod db;
 mod middleware;
 mod models;
 
-use crate::api::api::{login, sign_up, test_connection};
+use crate::api::api::{get_messages, login, sign_up, test_connection};
 use crate::config::Config;
 use crate::db::db::Database;
 use crate::middleware::request_logger::request_middleware;
@@ -19,6 +19,7 @@ use anyhow::{Context, Result, anyhow};
 use dotenvy::dotenv;
 use sqlx::migrate::Migrator;
 use tracing::{error, info};
+use crate::middleware::jwt_middleware::jwt_middleware;
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
@@ -57,7 +58,11 @@ async fn main() -> Result<()> {
             .app_data(Data::new(config.clone()))
             .wrap(from_fn(request_middleware))
             .service(test_connection)
-            .service(scope("/api").service(scope("/auth").service(sign_up).service(login)))
+            .service(
+                scope("/api")
+                    .service(scope("/auth").service(sign_up).service(login))
+                    .service(scope("/protected").wrap(from_fn(jwt_middleware)).service(get_messages))
+            )
     })
     .bind(&config_clone.address)?
     .run()

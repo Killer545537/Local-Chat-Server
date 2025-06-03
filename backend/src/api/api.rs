@@ -1,11 +1,11 @@
 use crate::auth::auth::{Token, hash_password};
 use crate::config::Config;
 use crate::db::db::Database;
-use crate::models::models::{LoginPayload, NewUser};
+use crate::models::models::{AuthenticatedUser, LoginPayload, NewUser};
 use actix_web::cookie::time::Duration;
 use actix_web::cookie::{Cookie, SameSite};
 use actix_web::web::{Data, Json};
-use actix_web::{HttpResponse, Responder, get, post};
+use actix_web::{HttpMessage, HttpRequest, HttpResponse, Responder, get, post};
 use serde_json::json;
 use tracing::{error, info};
 use validator::Validate;
@@ -30,7 +30,8 @@ async fn sign_up(db: Data<Database>, new_user: Json<NewUser>) -> impl Responder 
         }
     };
 
-    let new_user = new_user.into_inner();
+    let mut new_user = new_user.into_inner();
+    new_user.password = hashed_password;
 
     match db.add_user(new_user.clone()).await {
         Ok(user) => HttpResponse::Created().json(user),
@@ -109,5 +110,36 @@ async fn login(
                 }))
             }
         }
+    }
+}
+
+#[get("/messages")]
+async fn get_messages(req: HttpRequest, db: Data<Database>) -> impl Responder {
+    if let Some(user) = req.extensions().get::<AuthenticatedUser>() {
+        info!(
+            user_id = user.id.to_string(),
+            "Authenticated user requesting messages"
+        );
+
+        match db.get_messages().await {
+            Ok(messages) => HttpResponse::Ok().json(json!({
+                "messages": messages,
+                "retrieved_by": {
+                    "user_id": user.id,
+                    "name": user.name
+                }
+            })),
+            Err(e) => {
+                error!("Failed to retrieve messages: {}", e);
+                HttpResponse::InternalServerError().json(json!({
+                    "error": "Failed to retrieve messages"
+                }))
+            }
+        }
+    } else {
+        error!("Unauthenticated request reached protected endpoint");
+        HttpResponse::Unauthorized().json(json!({
+            "error": "Authentication required"
+        }))
     }
 }

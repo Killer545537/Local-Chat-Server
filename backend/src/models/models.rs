@@ -3,6 +3,7 @@ use sqlx::types::Uuid;
 use sqlx::types::chrono::{DateTime, Utc};
 use validator::Validate;
 
+#[derive(Serialize)]
 pub struct Message {
     pub id: Uuid,
     pub sender_id: Uuid,
@@ -31,4 +32,9 @@ pub struct User {
 pub struct LoginPayload {
     pub email: String,
     pub password: String,
+}
+
+pub struct AuthenticatedUser {
+    pub id: Uuid,
+    pub name: String,
 }
