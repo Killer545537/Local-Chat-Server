@@ -11,15 +11,16 @@ mod models;
 use crate::api::api::{get_messages, login, sign_up, test_connection};
 use crate::config::Config;
 use crate::db::db::Database;
+use crate::middleware::jwt_middleware::jwt_middleware;
 use crate::middleware::request_logger::request_middleware;
 use actix_web::middleware::from_fn;
 use actix_web::web::{Data, scope};
 use actix_web::{App, HttpServer, web};
+use actix_web_nextjs::spa;
 use anyhow::{Context, Result, anyhow};
 use dotenvy::dotenv;
 use sqlx::migrate::Migrator;
 use tracing::{error, info};
-use crate::middleware::jwt_middleware::jwt_middleware;
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
@@ -57,11 +58,22 @@ async fn main() -> Result<()> {
             .app_data(Data::new(db.clone()))
             .app_data(Data::new(config.clone()))
             .wrap(from_fn(request_middleware))
+            .service(
+                spa()
+                    .index_file("../frontend/out/index.html")
+                    .static_resources_mount("/")
+                    .static_resources_location("../frontend/out")
+                    .finish(),
+            )
             .service(test_connection)
             .service(
                 scope("/api")
                     .service(scope("/auth").service(sign_up).service(login))
-                    .service(scope("/protected").wrap(from_fn(jwt_middleware)).service(get_messages))
+                    .service(
+                        scope("/protected")
+                            .wrap(from_fn(jwt_middleware))
+                            .service(get_messages),
+                    ),
             )
     })
     .bind(&config_clone.address)?
