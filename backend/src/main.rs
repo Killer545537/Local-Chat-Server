@@ -8,7 +8,7 @@ mod db;
 mod middleware;
 mod models;
 
-use crate::api::api::{sign_up, test_connection};
+use crate::api::api::{login, sign_up, test_connection};
 use crate::config::Config;
 use crate::db::db::Database;
 use crate::middleware::request_logger::request_middleware;
@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
             .app_data(Data::new(config.clone()))
             .wrap(from_fn(request_middleware))
             .service(test_connection)
-            .service(scope("/api").service(scope("/auth").service(sign_up)))
+            .service(scope("/api").service(scope("/auth").service(sign_up).service(login)))
     })
     .bind(&config_clone.address)?
     .run()

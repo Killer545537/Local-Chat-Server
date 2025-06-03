@@ -1,4 +1,5 @@
-use crate::models::models::{Message, NewUser, User};
+use crate::auth::auth::verify_password;
+use crate::models::models::{LoginPayload, Message, NewUser, User};
 use anyhow::{Context, Result, anyhow};
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
@@ -76,6 +77,44 @@ impl Database {
 
                 error!("Database error while creating user: {}", err);
                 Err(anyhow!("Failed to insert user"))
+            }
+        }
+    }
+
+    pub async fn check_user(&self, login_payload: LoginPayload) -> Result<User> {
+        debug!("Looking up user with email: {}", login_payload.email);
+
+        let user_record = sqlx::query!(
+            r#"
+            SELECT id, name, email, password
+            FROM users
+            WHERE email = $1
+            "#,
+            login_payload.email
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .context("Failed to query user")?;
+
+        match user_record {
+            Some(record) => {
+                if verify_password(&login_payload.password, &record.password)? {
+                    let user = User {
+                        id: record.id,
+                        name: record.name,
+                        email: record.email
+                    };
+
+                    info!(user_id = %user.id, "User authenticated successfully");
+                    Ok(user)
+                } else {
+                    error!("Password authentication failed for user: {}", login_payload.email);
+                    Err(anyhow!("Invalid password"))
+                }
+            },
+            None => {
+                error!("User with email {} not found", login_payload.email);
+                Err(anyhow!("User not found"))
             }
         }
     }

@@ -1,7 +1,9 @@
 use crate::auth::auth::{Token, hash_password};
 use crate::config::Config;
 use crate::db::db::Database;
-use crate::models::models::NewUser;
+use crate::models::models::{LoginPayload, NewUser};
+use actix_web::cookie::time::Duration;
+use actix_web::cookie::{Cookie, SameSite};
 use actix_web::web::{Data, Json};
 use actix_web::{HttpResponse, Responder, get, post};
 use serde_json::json;
@@ -14,10 +16,7 @@ async fn test_connection() -> impl Responder {
 }
 
 #[post("/sign_up")]
-async fn sign_up(
-    db: Data<Database>,
-    new_user: Json<NewUser>,
-) -> impl Responder {
+async fn sign_up(db: Data<Database>, new_user: Json<NewUser>) -> impl Responder {
     if let Err(errors) = new_user.validate() {
         error!("User validation failed: {:?}", errors);
         return HttpResponse::BadRequest().json(errors.to_string());
@@ -50,6 +49,65 @@ async fn sign_up(
 
             error!("User creation failed: {}", e);
             HttpResponse::InternalServerError().body("Failed to register user")
+        }
+    }
+}
+
+#[post("/login")]
+async fn login(
+    db: Data<Database>,
+    config: Data<Config>,
+    login_payload: Json<LoginPayload>,
+) -> impl Responder {
+    match db.check_user(login_payload.into_inner()).await {
+        Ok(user) => {
+            let token_manager = Token::new(config.jwt_secret.clone());
+
+            match token_manager.generate(user.id, user.name.clone()) {
+                Ok(token) => {
+                    info!(user_id = %user.id, "Login successful, token generated");
+
+                    // Create cookie with the token
+                    let cookie = Cookie::build("auth_token", token)
+                        .path("/")
+                        .http_only(true)
+                        .secure(true)
+                        .same_site(SameSite::Strict)
+                        .max_age(Duration::hours(1))
+                        .finish();
+
+                    HttpResponse::Ok().cookie(cookie).json(json!({
+                        "status": "success",
+                        "user": {
+                            "id": user.id,
+                            "name": user.name,
+                            "email": user.email
+                        }
+                    }))
+                }
+                Err(e) => {
+                    error!("Token generation failed: {}", e);
+                    HttpResponse::InternalServerError().json(json!({
+                        "error": "Failed to generate authentication token"
+                    }))
+                }
+            }
+        }
+        Err(e) => {
+            let error_message = e.to_string();
+            error!("Login failed: {}", error_message);
+
+            if error_message.contains("User not found")
+                || error_message.contains("Invalid password")
+            {
+                HttpResponse::Unauthorized().json(json!({
+                    "error": "Invalid email or password"
+                }))
+            } else {
+                HttpResponse::InternalServerError().json(json!({
+                    "error": "Authentication failed"
+                }))
+            }
         }
     }
 }
