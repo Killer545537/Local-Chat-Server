@@ -1,7 +1,7 @@
-use crate::auth::auth::{Token, hash_password};
+use crate::auth::{Token, hash_password};
 use crate::config::Config;
-use crate::db::db::Database;
-use crate::models::models::{AuthenticatedUser, LoginPayload, NewUser};
+use crate::db::Database;
+use crate::models::{AuthenticatedUser, LoginPayload, NewUser};
 use actix_web::cookie::time::Duration;
 use actix_web::cookie::{Cookie, SameSite};
 use actix_web::web::{Data, Json};
@@ -16,7 +16,7 @@ async fn test_connection() -> impl Responder {
 }
 
 #[post("/sign_up")]
-async fn sign_up(db: Data<Database>, new_user: Json<NewUser>) -> impl Responder {
+async fn sign_up(db: Data<Database>, Json(mut new_user): Json<NewUser>) -> impl Responder {
     if let Err(errors) = new_user.validate() {
         error!("User validation failed: {:?}", errors);
         return HttpResponse::BadRequest().json(errors.to_string());
@@ -30,7 +30,6 @@ async fn sign_up(db: Data<Database>, new_user: Json<NewUser>) -> impl Responder 
         }
     };
 
-    let mut new_user = new_user.into_inner();
     new_user.password = hashed_password;
 
     match db.add_user(new_user.clone()).await {
@@ -115,7 +114,20 @@ async fn login(
 
 #[get("/messages")]
 async fn get_messages(req: HttpRequest, db: Data<Database>) -> impl Responder {
-    if let Some(user) = req.extensions().get::<AuthenticatedUser>() {
+    /*
+    This has to be done because the previous code
+    ```
+    if let Some(user) = req.extensions().get::<AuthenticatedUser>() 
+    ```
+    had a warning `this RefCell reference is held across an await point`.
+    This means that a reference that was borrowed was kept alive while hitting an `.await`.
+    This is unsafe since .await can yield control, and the borrow checker can't guarantee that `RefCell`'s borrow rules are upheld
+     */
+    let user = {
+        let extensions = req.extensions();
+        extensions.get::<AuthenticatedUser>().cloned()
+    };
+    if let Some(user) = user {
         info!(
             user_id = user.id.to_string(),
             "Authenticated user requesting messages"

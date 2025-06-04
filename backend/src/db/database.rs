@@ -1,5 +1,5 @@
-use crate::auth::auth::verify_password;
-use crate::models::models::{LoginPayload, Message, NewUser, User};
+use crate::auth::verify_password;
+use crate::models::{LoginPayload, Message, NewUser, User};
 use anyhow::{Context, Result, anyhow};
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;

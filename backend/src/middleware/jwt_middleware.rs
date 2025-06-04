@@ -1,6 +1,6 @@
-use crate::auth::auth::Token;
+use crate::auth::Token;
 use crate::config::Config;
-use crate::models::models::AuthenticatedUser;
+use crate::models::AuthenticatedUser;
 use actix_web::body::MessageBody;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::middleware::Next;

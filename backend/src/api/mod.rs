@@ -1,1 +1,3 @@
-pub mod api;
+mod routes;
+
+pub use routes::*;
