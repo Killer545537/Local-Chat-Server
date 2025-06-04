@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export'
+  output: 'export',
+  eslint: {
+    dirs: ['src'],
+  },
 };
 
 export default nextConfig;

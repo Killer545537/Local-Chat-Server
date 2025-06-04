@@ -13,6 +13,8 @@ use crate::config::Config;
 use crate::db::db::Database;
 use crate::middleware::jwt_middleware::jwt_middleware;
 use crate::middleware::request_logger::request_middleware;
+use actix_cors::Cors;
+use actix_web::http::header;
 use actix_web::middleware::from_fn;
 use actix_web::web::{Data, scope};
 use actix_web::{App, HttpServer, web};
@@ -57,14 +59,14 @@ async fn main() -> Result<()> {
         App::new()
             .app_data(Data::new(db.clone()))
             .app_data(Data::new(config.clone()))
-            .wrap(from_fn(request_middleware))
-            .service(
-                spa()
-                    .index_file("../frontend/out/index.html")
-                    .static_resources_mount("/")
-                    .static_resources_location("../frontend/out")
-                    .finish(),
+            .wrap(
+                Cors::default()
+                    .allowed_origin("http://192.168.29.36:8080")
+                    .allowed_methods(vec!["GET", "POST"])
+                    .allowed_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE])
+                    .supports_credentials(),
             )
+            .wrap(from_fn(request_middleware))
             .service(test_connection)
             .service(
                 scope("/api")
@@ -74,6 +76,13 @@ async fn main() -> Result<()> {
                             .wrap(from_fn(jwt_middleware))
                             .service(get_messages),
                     ),
+            )
+            .service(
+                spa()
+                    .index_file("../frontend/out/index.html")
+                    .static_resources_mount("/")
+                    .static_resources_location("../frontend/out")
+                    .finish(),
             )
     })
     .bind(&config_clone.address)?
