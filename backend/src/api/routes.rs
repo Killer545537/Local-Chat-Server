@@ -1,13 +1,20 @@
 use crate::auth::{Token, hash_password};
+use crate::chat::chatserver::ChatServer;
+use crate::chat::websocketsession::WebSocketSession;
 use crate::config::Config;
 use crate::db::Database;
 use crate::models::{AuthenticatedUser, LoginPayload, NewUser};
+use actix::Addr;
 use actix_web::cookie::time::Duration;
 use actix_web::cookie::{Cookie, SameSite};
-use actix_web::web::{Data, Json};
+use actix_web::web::{Data, Json, Payload, Query};
 use actix_web::{HttpMessage, HttpRequest, HttpResponse, Responder, get, post};
+use actix_web_actors::ws;
 use serde_json::json;
+use std::collections::HashMap;
+use std::str::FromStr;
 use tracing::{error, info};
+use uuid::Uuid;
 use validator::Validate;
 
 #[get("/test")]
@@ -117,7 +124,7 @@ async fn get_messages(req: HttpRequest, db: Data<Database>) -> impl Responder {
     /*
     This has to be done because the previous code
     ```
-    if let Some(user) = req.extensions().get::<AuthenticatedUser>() 
+    if let Some(user) = req.extensions().get::<AuthenticatedUser>()
     ```
     had a warning `this RefCell reference is held across an await point`.
     This means that a reference that was borrowed was kept alive while hitting an `.await`.
@@ -154,4 +161,32 @@ async fn get_messages(req: HttpRequest, db: Data<Database>) -> impl Responder {
             "error": "Authentication required"
         }))
     }
+}
+
+#[get("/ws")]
+async fn websocket_route(
+    req: HttpRequest,
+    stream: Payload,
+    srv: Data<Addr<ChatServer>>,
+) -> impl Responder {
+    let query = req.query_string();
+    let userid_opt = Query::<HashMap<String, String>>::from_query(query).ok();
+
+    if let Some(params) = userid_opt {
+        if let Some(userid) = params.get("userid").cloned() {
+            return ws::start(
+                WebSocketSession {
+                    id: Uuid::from_str(&userid).unwrap(),
+                    addr: srv.get_ref().clone(),
+                },
+                &req,
+                stream,
+            )
+            .unwrap_or_else(|_| {
+                HttpResponse::BadRequest().body("Failed to start WebSocket session")
+            });
+        }
+    }
+
+    HttpResponse::BadRequest().body("Userid is required")
 }

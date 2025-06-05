@@ -4,8 +4,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import React from 'react';
+import { config } from '@/app/config';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export const SignupForm = () => {
+    const router = useRouter();
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -15,18 +20,21 @@ export const SignupForm = () => {
             password: (form.elements.namedItem('password') as HTMLInputElement).value,
         };
 
-        console.log('Sending request:', {
-            url: 'http://192.168.29.36:8080/api/auth/sign_up',
+        const res = await fetch(`${config.apiUrl}/api/auth/sign_up`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
 
-        await fetch('http://192.168.29.36:8080/api/auth/sign_up', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
+        if (res.ok) {
+            router.push('/login');
+        } else if (res.status === 409) {
+            toast.error('User already exists');
+        } else if (res.status === 500) {
+            toast.error('Internal server error. Please try again later');
+        } else {
+            toast.error('An error occurred. Please try again later');
+        }
     };
 
     return (

@@ -102,19 +102,52 @@ impl Database {
                     let user = User {
                         id: record.id,
                         name: record.name,
-                        email: record.email
+                        email: record.email,
                     };
 
                     info!(user_id = %user.id, "User authenticated successfully");
                     Ok(user)
                 } else {
-                    error!("Password authentication failed for user: {}", login_payload.email);
+                    error!(
+                        "Password authentication failed for user: {}",
+                        login_payload.email
+                    );
                     Err(anyhow!("Invalid password"))
                 }
-            },
+            }
             None => {
                 error!("User with email {} not found", login_payload.email);
                 Err(anyhow!("User not found"))
+            }
+        }
+    }
+
+    pub async fn save_message(&self, message: Message) -> Result<()> {
+        debug!(
+            "Saving message: id={}, sender_id={}, content={}, sent_at={}",
+            message.id, message.sender_id, message.content, message.sent_at
+        );
+        let result = sqlx::query!(
+            r#"
+            INSERT INTO messages (id, sender_id, content, sent_at)
+            VALUES ($1, $2, $3, $4)
+            "#,
+            message.id,
+            message.sender_id,
+            message.content,
+            message.sent_at,
+        )
+        .execute(&self.pool)
+        .await;
+
+        match result {
+            Ok(_) => {
+                info!("Message saved successfully={}", message.id);
+                Ok(())
+            }
+            Err(e) => {
+                error!("Failed to save message: {}", e);
+                Err(anyhow!("Failed to save message"))
             }
         }
     }

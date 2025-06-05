@@ -107,3 +107,12 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: rgba(75, 85, 99, 0.5);
 }
+
+.minimal-toast .sonner-toast {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    box-shadow: none;
+    border-radius: 4px;
+    background: #fff;
+    color: #222;
+}

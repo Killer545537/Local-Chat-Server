@@ -8,7 +8,8 @@ mod db;
 mod middleware;
 mod models;
 
-use crate::api::{get_messages, login, sign_up, test_connection};
+use crate::api::{get_messages, login, sign_up, test_connection, websocket_route};
+use crate::chat::chatserver::ChatServer;
 use crate::config::Config;
 use crate::db::Database;
 use crate::middleware::jwt_middleware::jwt_middleware;
@@ -48,6 +49,8 @@ async fn main() -> Result<()> {
         }
     };
 
+    let chat_server = ChatServer::new(db.clone());
+
     MIGRATOR
         .run(&db.pool)
         .await
@@ -59,6 +62,7 @@ async fn main() -> Result<()> {
         App::new()
             .app_data(Data::new(db.clone()))
             .app_data(Data::new(config.clone()))
+            .app_data(Data::new(chat_server.clone()))
             .wrap(
                 Cors::default()
                     .allowed_origin("http://192.168.29.36:8080")
@@ -77,6 +81,7 @@ async fn main() -> Result<()> {
                             .service(get_messages),
                     ),
             )
+            .service(scope("/ws").service(websocket_route))
             .service(
                 spa()
                     .index_file("../frontend/out/index.html")
