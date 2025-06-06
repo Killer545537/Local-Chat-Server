@@ -10,6 +10,7 @@ use uuid::Uuid;
 
 pub struct WebSocketSession {
     pub id: Uuid,
+    pub username: String,
     pub addr: Addr<ChatServer>,
 }
 
@@ -51,7 +52,8 @@ impl StreamHandler<Result<WsMessage, ProtocolError>> for WebSocketSession {
                     // Immediately acknowledge receipt to the sender
                     if let Ok(response) = serde_json::to_string(&json!({
                         "status": "received",
-                        "message": chat_msg
+                        "message": chat_msg,
+                        "username": self.username,
                     })) {
                         ctx.text(response);
                     }

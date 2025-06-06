@@ -28,9 +28,11 @@ export const LoginForm = () => {
         if (res.ok) {
             const responseData = await res.json();
             const userId = responseData?.user?.id;
+            const username = responseData?.user?.name;
 
-            if (userId) {
-                router.push(`/chat?userid=${userId}`);
+            if (userId && username) {
+                console.log(`User ID: ${userId}, Username: ${encodeURIComponent(username)}`);
+                router.push(`/chat?userid=${userId}&username=${encodeURIComponent(username)}`);
             } else {
                 toast.error('Login successful, but User Id was not found in the response');
             }

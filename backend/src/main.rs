@@ -22,7 +22,6 @@ use actix_web::web::{Data, scope};
 use actix_web::{App, HttpServer};
 use actix_web_nextjs::spa;
 use anyhow::{Context, Result, anyhow};
-use dotenvy::dotenv;
 use sqlx::migrate::Migrator;
 use tracing::{error, info};
 

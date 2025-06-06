@@ -172,36 +172,44 @@ async fn websocket_route(
     info!("WebSocket route hit");
     let query = req.query_string();
 
-    let userid_opt = Query::<HashMap<String, String>>::from_query(query).ok();
+    let params_opt = Query::<HashMap<String, String>>::from_query(query).ok();
 
-    if let Some(params) = userid_opt {
-        if let Some(userid) = params.get("userid").cloned() {
-            tracing::info!("Userid param found: {}", userid);
-            let uuid = Uuid::from_str(&userid);
-            match uuid {
+    if let Some(params) = params_opt {
+        let userid = params.get("userid").cloned();
+        let username = params.get("username").cloned();
+
+        if let (Some(userid), Some(username)) = (userid, username) {
+            info!("Userid param found: {}, username: {}", userid, username);
+            let uuid = match Uuid::from_str(&userid) {
                 Ok(uuid) => {
                     info!("Parsed UUID: {}", uuid);
-                    return ws::start(
-                        WebSocketSession {
-                            id: uuid,
-                            addr: srv.get_ref().clone(),
-                        },
-                        &req,
-                        stream,
-                    )
-                    .unwrap_or_else(|e| {
-                        error!("Failed to start WebSocket session: {}", e);
-                        HttpResponse::BadRequest().body("Failed to start WebSocket session")
-                    });
+                    uuid
                 }
                 Err(e) => {
                     error!("Invalid UUID: {}", e);
                     return HttpResponse::BadRequest().body("Invalid userid");
                 }
-            }
+            };
+
+            return ws::start(
+                WebSocketSession {
+                    id: uuid,
+                    username: username,
+                    addr: srv.get_ref().clone(),
+                },
+                &req,
+                stream,
+            )
+            .unwrap_or_else(|e| {
+                error!("Failed to start Websocket session: {}", e);
+                HttpResponse::BadRequest().body("Failed to start Websocket session")
+            });
+        } else {
+            error!("Both userid and username are required");
+            HttpResponse::BadRequest().body("Both userid and username are required");
         }
     }
 
-    error!("Userid is required");
-    HttpResponse::BadRequest().body("Userid is required")
+    error!("Missing query parameters");
+    HttpResponse::BadRequest().body("Both userid and username query parameters are required")
 }

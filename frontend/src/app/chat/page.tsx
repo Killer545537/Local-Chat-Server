@@ -6,15 +6,18 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 const ChatContent = () => {
     const searchParams = useSearchParams();
     const userId = searchParams.get('userid');
+    const username = searchParams.get('username');
     const ws = useRef<WebSocket | null>(null);
-    const [messages, setMessages] = useState<{ id: string; content: string }[]>([]);
+    const [messages, setMessages] = useState<{
+        username: string; id: string; content: string
+    }[]>([]);
     const [inputValue, setInputValue] = useState<string>('');
     const [connectionStatus, setConnectionStatus] = useState<string>('Disconnected');
 
     useEffect(() => {
         if (userId) {
             console.log('userId:', userId);
-            const websocketUrl = `ws://192.168.29.36:8080/ws?userid=${userId}`;
+            const websocketUrl = `ws://192.168.29.36:8080/ws?userid=${userId}&username=${username}`;
             setConnectionStatus('Connecting...');
 
             if (
@@ -31,11 +34,11 @@ const ChatContent = () => {
                 try {
                     const data = JSON.parse(event.data);
                     if (data.id && data.content) {
-                        setMessages((prev) => [...prev, { id: data.id, content: data.content }]);
+                        setMessages((prev) => [...prev, { username: data.username, id: data.id, content: data.content }]);
                     }
                 } catch {
                     // Fallback for non-JSON messages
-                    setMessages((prev) => [...prev, { id: 'system', content: event.data }]);
+                    setMessages((prev) => [...prev, { username: 'System', id: 'system', content: event.data }]);
                 }
             };
             ws.current.onerror = () => setConnectionStatus('Error');
@@ -49,13 +52,14 @@ const ChatContent = () => {
         } else {
             setConnectionStatus('User ID not provided');
         }
-    }, [userId]);
+    }, [userId, username]);
 
     const handleSendMessage = () => {
         if (ws.current?.readyState === WebSocket.OPEN && inputValue.trim() !== '') {
             const message = JSON.stringify({
                 id: userId,
                 content: inputValue,
+                username: username,
             });
             ws.current.send(message);
             setInputValue('');
@@ -66,17 +70,17 @@ const ChatContent = () => {
 
     if (!userId) {
         return (
-            <div className='container mx-auto p-4'>
-                <h1 className='mb-4 text-2xl font-bold'>Chat</h1>
-                <p className='text-red-500'>User ID not provided in URL. Cannot connect to chat.</p>
+            <div className="container mx-auto p-4">
+                <h1 className="mb-4 text-2xl font-bold">Chat</h1>
+                <p className="text-red-500">User ID not provided in URL. Cannot connect to chat.</p>
                 <p>Please log in again or ensure the User ID is passed correctly.</p>
             </div>
         );
     }
 
     return (
-        <div className='container mx-auto flex h-screen flex-col p-4'>
-            <h1 className='mb-4 text-2xl font-bold'>Chat Room</h1>
+        <div className="container mx-auto flex h-screen flex-col p-4">
+            <h1 className="mb-4 text-2xl font-bold">Chat Room</h1>
             <p>User ID: {userId}</p>
             <p>
                 WebSocket Status:{' '}
@@ -85,34 +89,38 @@ const ChatContent = () => {
                         connectionStatus === 'Connected'
                             ? 'text-green-500'
                             : connectionStatus === 'Connecting...'
-                              ? 'text-yellow-500'
-                              : 'text-red-500'
+                                ? 'text-yellow-500'
+                                : 'text-red-500'
                     }
                 >
                     {connectionStatus}
                 </span>
             </p>
-            <div className='mt-4 mb-4 flex-grow overflow-y-auto rounded border p-2'>
-                {messages.length === 0 && <p className='text-gray-500'>No messages yet.</p>}
+            <div className="mt-4 mb-4 flex-grow overflow-y-auto rounded border p-2 bg-gray-50">
+                {messages.length === 0 && <p className="text-gray-400">No messages yet.</p>}
                 {messages.map((msg, index) => (
-                    <div key={index} className='my-1 rounded bg-gray-100 p-1'>
-                        <span className='font-bold'>{msg.id}:</span> {msg.content}
+                    <div
+                        key={index}
+                        className="my-2 rounded-lg bg-blue-100 px-3 py-2 shadow-sm"
+                    >
+                        <span className="font-semibold text-blue-700">{msg.username}:</span>
+                        <span className="ml-2 text-gray-800">{msg.content}</span>
                     </div>
                 ))}
             </div>
-            <div className='flex gap-2'>
+            <div className="flex gap-2">
                 <input
-                    type='text'
+                    type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className='flex-grow rounded border p-2'
-                    placeholder='Type a message...'
+                    className="flex-grow rounded border p-2"
+                    placeholder="Type a message..."
                     disabled={connectionStatus !== 'Connected'}
                 />
                 <button
                     onClick={handleSendMessage}
-                    className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50'
+                    className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50"
                     disabled={connectionStatus !== 'Connected'}
                 >
                     Send

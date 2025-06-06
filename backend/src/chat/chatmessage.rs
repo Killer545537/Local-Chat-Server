@@ -6,5 +6,6 @@ use uuid::Uuid;
 #[rtype(result = "()")]
 pub struct ChatMessage {
     pub id: Uuid,
+    pub username: String,
     pub content: String,
 }
