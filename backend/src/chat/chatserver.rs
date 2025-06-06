@@ -53,7 +53,7 @@ impl Handler<ChatMessage> for ChatServer {
         let timestamp = Utc::now();
 
         for session in self.sessions.values() {
-            let _ = session.do_send(msg.clone());
+            session.do_send(msg.clone());
         }
 
         let db = self.database.clone();

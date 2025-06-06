@@ -169,24 +169,39 @@ async fn websocket_route(
     stream: Payload,
     srv: Data<Addr<ChatServer>>,
 ) -> impl Responder {
+    info!("WebSocket route hit");
     let query = req.query_string();
+
     let userid_opt = Query::<HashMap<String, String>>::from_query(query).ok();
 
     if let Some(params) = userid_opt {
         if let Some(userid) = params.get("userid").cloned() {
-            return ws::start(
-                WebSocketSession {
-                    id: Uuid::from_str(&userid).unwrap(),
-                    addr: srv.get_ref().clone(),
-                },
-                &req,
-                stream,
-            )
-            .unwrap_or_else(|_| {
-                HttpResponse::BadRequest().body("Failed to start WebSocket session")
-            });
+            tracing::info!("Userid param found: {}", userid);
+            let uuid = Uuid::from_str(&userid);
+            match uuid {
+                Ok(uuid) => {
+                    info!("Parsed UUID: {}", uuid);
+                    return ws::start(
+                        WebSocketSession {
+                            id: uuid,
+                            addr: srv.get_ref().clone(),
+                        },
+                        &req,
+                        stream,
+                    )
+                    .unwrap_or_else(|e| {
+                        error!("Failed to start WebSocket session: {}", e);
+                        HttpResponse::BadRequest().body("Failed to start WebSocket session")
+                    });
+                }
+                Err(e) => {
+                    error!("Invalid UUID: {}", e);
+                    return HttpResponse::BadRequest().body("Invalid userid");
+                }
+            }
         }
     }
 
+    error!("Userid is required");
     HttpResponse::BadRequest().body("Userid is required")
 }

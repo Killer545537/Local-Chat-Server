@@ -8,6 +8,7 @@ mod db;
 mod middleware;
 mod models;
 
+use actix::Actor;
 use crate::api::{get_messages, login, sign_up, test_connection, websocket_route};
 use crate::chat::chatserver::ChatServer;
 use crate::config::Config;
@@ -32,7 +33,6 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
     info!("LOGGING IS WORKING FINE!");
 
-    dotenv().ok();
     info!("DATABASE VARIABLES LOADED!");
 
     let config = Config::init();
@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
         }
     };
 
-    let chat_server = ChatServer::new(db.clone());
+    let chat_server = ChatServer::new(db.clone()).start();
 
     MIGRATOR
         .run(&db.pool)
@@ -65,11 +65,21 @@ async fn main() -> Result<()> {
             .app_data(Data::new(chat_server.clone()))
             .wrap(
                 Cors::default()
-                    .allowed_origin("http://192.168.29.36:8080")
-                    .allowed_methods(vec!["GET", "POST"])
-                    .allowed_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE])
+                    .allow_any_origin()
+                    .allowed_methods(vec!["GET", "POST", "OPTIONS", "CONNECT"])
+                    .allowed_headers(vec![
+                        header::AUTHORIZATION,
+                        header::CONTENT_TYPE,
+                        header::UPGRADE,
+                        header::CONNECTION,
+                        header::SEC_WEBSOCKET_KEY,
+                        header::SEC_WEBSOCKET_VERSION,
+                        header::SEC_WEBSOCKET_PROTOCOL,
+                        header::SEC_WEBSOCKET_EXTENSIONS,
+                    ])
                     .supports_credentials(),
             )
+            .service(websocket_route)
             .wrap(from_fn(request_middleware))
             .service(test_connection)
             .service(
@@ -81,7 +91,6 @@ async fn main() -> Result<()> {
                             .service(get_messages),
                     ),
             )
-            .service(scope("/ws").service(websocket_route))
             .service(
                 spa()
                     .index_file("../frontend/out/index.html")

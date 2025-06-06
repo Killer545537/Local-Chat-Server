@@ -20,15 +20,24 @@ export const LoginForm = () => {
         };
 
         const res = await fetch(`${config.apiUrl}/api/auth/login`, {
-            method: 'GET',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
 
         if (res.ok) {
-            router.push('/chat');
+            const responseData = await res.json();
+            const userId = responseData?.user?.id;
+
+            if (userId) {
+                router.push(`/chat?userid=${userId}`);
+            } else {
+                toast.error('Login successful, but User Id was not found in the response');
+            }
         } else if (res.status == 500) {
             toast.error('Internal server error. Please try later');
+        } else if (res.status === 401) {
+            toast.error('Invalid email or password');
         } else {
             toast.error('An error occurred. Please try later');
         }

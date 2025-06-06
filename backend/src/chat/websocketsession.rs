@@ -1,3 +1,6 @@
+use tracing::error;
+use serde_json::json;
+use tracing::info;
 use crate::chat::chatmessage::ChatMessage;
 use crate::chat::chatserver::ChatServer;
 use crate::chat::connect_disconnect::{Connect, Disconnect};
@@ -21,7 +24,7 @@ impl Actor for WebSocketSession {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        self.addr.do_send(Disconnect { id: self.id})
+        self.addr.do_send(Disconnect { id: self.id })
     }
 }
 
@@ -35,12 +38,31 @@ impl Handler<ChatMessage> for WebSocketSession {
 }
 
 impl StreamHandler<Result<WsMessage, ProtocolError>> for WebSocketSession {
-    fn handle(&mut self, msg: Result<WsMessage, ProtocolError>, _ctx: &mut Self::Context) {
-        if let Ok(WsMessage::Text(text)) = msg {
-            self.addr.do_send(ChatMessage {
-                id: self.id,
-                content: text.to_string(),
-            })
+    fn handle(&mut self, msg: Result<WsMessage, ProtocolError>, ctx: &mut Self::Context) {
+        match msg {
+            Ok(WsMessage::Text(text)) => {
+                // Log the received message
+                info!("Received message: {}", text);
+
+                if let Ok(chat_msg) = serde_json::from_str::<ChatMessage>(&text) {
+                    // Send to chat server for broadcasting and database saving
+                    self.addr.do_send(chat_msg.clone());
+
+                    // Immediately acknowledge receipt to the sender
+                    if let Ok(response) = serde_json::to_string(&json!({
+                        "status": "received",
+                        "message": chat_msg
+                    })) {
+                        ctx.text(response);
+                    }
+                } else {
+                    // Send parsing error back to client
+                    error!("Failed to parse message: {}", text);
+                    ctx.text(r#"{"error":"Invalid message format"}"#);
+                }
+            }
+            Ok(WsMessage::Ping(msg)) => ctx.pong(&msg),
+            _ => (),
         }
     }
 }

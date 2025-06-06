@@ -1,3 +1,4 @@
+use dotenvy::dotenv;
 use dotenvy_macro::dotenv;
 
 #[derive(Clone)]
@@ -9,6 +10,8 @@ pub struct Config {
 
 impl Config {
     pub fn init() -> Self {
+        dotenv().ok();
+
         Config {
             database_url: dotenv!("DATABASE_URL").to_string(),
             address: dotenv!("ADDRESS").to_string(),
