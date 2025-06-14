@@ -3,13 +3,13 @@ import { PageLayout } from '@/components/info/page-layout';
 export default function PrivacyPage() {
     return (
         <PageLayout>
-            <main className='flex w-full flex-grow flex-col items-center justify-center py-16 lg:p-8'>
-                <div className='flex w-full flex-col space-y-6 sm:w-[550px] md:w-[700px] lg:w-[800px]'>
-                    <div className='flex flex-col space-y-2 text-center'>
-                        <h1 className='text-2xl font-semibold tracking-tight'>Privacy Policy</h1>
-                        <p className='text-muted-foreground text-sm'>Last updated: {new Date().toLocaleDateString()}</p>
+            <main className="flex w-full flex-grow flex-col items-center justify-center py-16 lg:p-8">
+                <div className="flex w-full flex-col space-y-6 sm:w-[550px] md:w-[700px] lg:w-[800px]">
+                    <div className="flex flex-col space-y-2 text-center">
+                        <h1 className="text-2xl font-semibold tracking-tight">Privacy Policy</h1>
+                        <p className="text-muted-foreground text-sm">Last updated: {new Date().toLocaleDateString()}</p>
                     </div>
-                    <div className='text-muted-foreground space-y-4'>
+                    <div className="text-muted-foreground space-y-4">
                         <p>
                             Your privacy is important to us. It is Local Chat&#39;s policy to respect your privacy
                             regarding any information we may collect from you across our website, and other sites we own
@@ -21,7 +21,7 @@ export default function PrivacyPage() {
                             why we’re collecting it and how it will be used.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Information We Collect</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Information We Collect</h2>
                         <p>
                             Log data: When you visit our website, our servers may automatically log the standard data
                             provided by your web browser. It may include your computer’s Internet Protocol (IP) address,
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
                             information.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>How We Use Information</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">How We Use Information</h2>
                         <p>
                             We may use a combination of identifying and non-identifying information to understand who
                             our visitors are, how they use our services, and how we may improve their experience of our
@@ -52,7 +52,7 @@ export default function PrivacyPage() {
                             along with promotional content that we believe may be of interest to you.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Data Processing and Storage</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Data Processing and Storage</h2>
                         <p>
                             The personal information we collect is stored and processed where we or our partners,
                             affiliates, and third-party providers maintain facilities. We only transfer data within
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
                             disclosure, copying, use, or modification.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Your Rights</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Your Rights</h2>
                         <p>
                             You have the right to be informed about how your data is collected and used. You are
                             entitled to know what data we collect about you, and how it is processed. You are entitled
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
                             control panel.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Children&#39;s Privacy</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Children&#39;s Privacy</h2>
                         <p>
                             This website does not knowingly collect any personally identifiable information from
                             children under the age of 13. If you think that your child provided this kind of information
@@ -86,14 +86,14 @@ export default function PrivacyPage() {
                             efforts to promptly remove such information from our records.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Limits of Our Policy</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Limits of Our Policy</h2>
                         <p>
                             Our website may link to external sites that are not operated by us. Please be aware that we
                             have no control over the content and policies of those sites, and cannot accept
                             responsibility or liability for their respective privacy practices.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Changes to This Policy</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Changes to This Policy</h2>
                         <p>
                             At our discretion, we may change our privacy policy to reflect current acceptable practices.
                             We will take reasonable steps to let users know about changes via our website. Your

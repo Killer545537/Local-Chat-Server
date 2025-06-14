@@ -8,20 +8,20 @@ mod db;
 mod middleware;
 mod models;
 
-use actix::Actor;
 use crate::api::{get_messages, login, sign_up, test_connection, websocket_route};
 use crate::chat::chatserver::ChatServer;
 use crate::config::Config;
 use crate::db::Database;
 use crate::middleware::jwt_middleware::jwt_middleware;
 use crate::middleware::request_logger::request_middleware;
+use actix::Actor;
 use actix_cors::Cors;
 use actix_web::http::header;
 use actix_web::middleware::from_fn;
-use actix_web::web::{Data, scope};
+use actix_web::web::{scope, Data};
 use actix_web::{App, HttpServer};
 use actix_web_nextjs::spa;
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use sqlx::migrate::Migrator;
 use tracing::{error, info};
 
@@ -92,9 +92,9 @@ async fn main() -> Result<()> {
             )
             .service(
                 spa()
-                    .index_file("../frontend/out/index.html")
+                    .index_file("frontend/out/index.html")
                     .static_resources_mount("/")
-                    .static_resources_location("../frontend/out")
+                    .static_resources_location("frontend/out")
                     .finish(),
             )
     })

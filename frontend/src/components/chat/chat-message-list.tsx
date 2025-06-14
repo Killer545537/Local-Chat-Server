@@ -1,5 +1,5 @@
-import React, {useEffect, useRef} from 'react';
-import {ChatMessage} from '@/components/chat/chat-message';
+import React, { useEffect, useRef } from 'react';
+import { ChatMessage } from '@/components/chat/chat-message';
 
 interface Message {
     sender: { id: string; name: string };
@@ -12,11 +12,11 @@ interface ChatMessageListProps {
     currentUserId: string;
 }
 
-export const ChatMessageList = ({messages, currentUserId}: ChatMessageListProps) => {
+export const ChatMessageList = ({ messages, currentUserId }: ChatMessageListProps) => {
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     return (
@@ -29,7 +29,7 @@ export const ChatMessageList = ({messages, currentUserId}: ChatMessageListProps)
                     isCurrentUser={msg.sender.id === currentUserId}
                 />
             ))}
-            <div ref={messagesEndRef}/>
+            <div ref={messagesEndRef} />
         </div>
     );
 };

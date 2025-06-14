@@ -22,6 +22,7 @@ const eslintConfig = [
             'public/**',
             'src/components/ui/**',
             'src/hooks/**',
+            'src/lib/**',
         ],
     },
     {

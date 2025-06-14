@@ -9,7 +9,7 @@ type PageLayoutProps = {
 };
 
 export const PageLayout = ({ children, type }: PageLayoutProps) => (
-    <div className='relative container flex min-h-screen flex-col items-center lg:max-w-none lg:px-0'>
+    <div className="relative container flex min-h-screen flex-col items-center lg:max-w-none lg:px-0">
         <PageHeader />
         <PageAuthLinks type={type} />
         {children}

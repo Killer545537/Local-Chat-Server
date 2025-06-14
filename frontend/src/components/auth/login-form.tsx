@@ -46,16 +46,16 @@ export const LoginForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='space-y-2'>
-                <Label htmlFor='email'>Email</Label>
-                <Input id='email' name='email' type='email' required autoComplete='email' />
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required autoComplete="email" />
             </div>
-            <div className='space-y-2'>
-                <Label htmlFor='password'>Password</Label>
-                <Input id='password' name='password' type='password' required autoComplete='current-password' />
+            <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" name="password" type="password" required autoComplete="current-password" />
             </div>
-            <Button type='submit' className='w-full'>
+            <Button type="submit" className="w-full">
                 Log In
             </Button>
         </form>

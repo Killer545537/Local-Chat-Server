@@ -38,35 +38,35 @@ export const SignupForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='space-y-2'>
-                <Label htmlFor='userName'>Username</Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="userName">Username</Label>
                 <Input
-                    id='userName'
-                    name='name'
-                    type='text'
+                    id="userName"
+                    name="name"
+                    type="text"
                     required
                     minLength={3}
                     maxLength={50}
-                    autoComplete='username'
+                    autoComplete="username"
                 />
             </div>
-            <div className='space-y-2'>
-                <Label htmlFor='email'>Email</Label>
-                <Input id='email' name='email' type='email' required autoComplete='email' />
+            <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required autoComplete="email" />
             </div>
-            <div className='space-y-2'>
-                <Label htmlFor='password'>Password</Label>
+            <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
                 <Input
-                    id='password'
-                    name='password'
-                    type='password'
+                    id="password"
+                    name="password"
+                    type="password"
                     required
                     minLength={8}
-                    autoComplete='new-password'
+                    autoComplete="new-password"
                 />
             </div>
-            <Button type='submit' className='w-full'>
+            <Button type="submit" className="w-full">
                 Sign Up
             </Button>
         </form>

@@ -9,16 +9,16 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-    children,
-}: Readonly<{
+                                       children,
+                                   }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
-        <html lang='en'>
-            <body className='antialiased'>
-                <Toaster richColors theme='light' className='minimal-toast' position='bottom-left' />
-                {children}
-            </body>
+        <html lang="en">
+        <body className="antialiased">
+        <Toaster richColors theme="light" className="minimal-toast" position="bottom-left" />
+        {children}
+        </body>
         </html>
     );
 }

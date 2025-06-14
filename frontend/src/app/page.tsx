@@ -1,6 +1,6 @@
 const Page = () => (
-  <div>Hello</div>
-)
+    <div>Hello</div>
+);
 
 export default Page;
 

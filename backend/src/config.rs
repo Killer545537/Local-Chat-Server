@@ -1,5 +1,5 @@
+use anyhow::Context;
 use dotenvy::dotenv;
-use dotenvy_macro::dotenv;
 
 #[derive(Clone)]
 pub struct Config {
@@ -13,9 +13,9 @@ impl Config {
         dotenv().ok();
 
         Config {
-            database_url: dotenv!("DATABASE_URL").to_string(),
-            address: dotenv!("ADDRESS").to_string(),
-            jwt_secret: dotenv!("JWT_SECRET").to_string(),
+            database_url: dotenvy::var("DATABASE_URL").context("Failed to get $DATABASE_URL").unwrap(),
+            address: dotenvy::var("ADDRESS").context("Failed to get $ADDRESS").unwrap(),
+            jwt_secret: dotenvy::var("JWT_SECRET").context("Failed to get $JWT_SECRET").unwrap(),
         }
     }
 }

@@ -3,13 +3,13 @@ import { PageLayout } from '@/components/info/page-layout';
 export default function TermsPage() {
     return (
         <PageLayout>
-            <main className='flex w-full flex-grow flex-col items-center justify-center py-16 lg:p-8'>
-                <div className='flex w-full flex-col space-y-6 sm:w-[550px] md:w-[700px] lg:w-[800px]'>
-                    <div className='flex flex-col space-y-2 text-center'>
-                        <h1 className='text-2xl font-semibold tracking-tight'>Terms of Service</h1>
-                        <p className='text-muted-foreground text-sm'>Last updated: {new Date().toLocaleDateString()}</p>
+            <main className="flex w-full flex-grow flex-col items-center justify-center py-16 lg:p-8">
+                <div className="flex w-full flex-col space-y-6 sm:w-[550px] md:w-[700px] lg:w-[800px]">
+                    <div className="flex flex-col space-y-2 text-center">
+                        <h1 className="text-2xl font-semibold tracking-tight">Terms of Service</h1>
+                        <p className="text-muted-foreground text-sm">Last updated: {new Date().toLocaleDateString()}</p>
                     </div>
-                    <div className='text-muted-foreground space-y-4'>
+                    <div className="text-muted-foreground space-y-4">
                         <p>
                             Welcome to Local Chat! These terms and conditions outline the rules and regulations for the
                             use of Local Chat&#39;s Website, located at your local network.
@@ -20,7 +20,7 @@ export default function TermsPage() {
                             page.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Cookies</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Cookies</h2>
                         <p>
                             We employ the use of cookies. By accessing Local Chat, you agreed to use cookies in
                             agreement with the Local Chat&#39;s Privacy Policy.
@@ -32,7 +32,7 @@ export default function TermsPage() {
                             also use cookies.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>License</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">License</h2>
                         <p>
                             Unless otherwise stated, Local Chat and/or its licensors own the intellectual property
                             rights for all material on Local Chat. All intellectual property rights are reserved. You
@@ -40,7 +40,7 @@ export default function TermsPage() {
                             these terms and conditions.
                         </p>
                         <p>You must not:</p>
-                        <ul className='list-disc space-y-1 pl-5'>
+                        <ul className="list-disc space-y-1 pl-5">
                             <li>Republish material from Local Chat</li>
                             <li>Sell, rent or sub-license material from Local Chat</li>
                             <li>Reproduce, duplicate or copy material from Local Chat</li>
@@ -48,7 +48,7 @@ export default function TermsPage() {
                         </ul>
                         <p>This Agreement shall begin on the date hereof.</p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>User Comments</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">User Comments</h2>
                         <p>
                             Parts of this website offer an opportunity for users to post and exchange opinions and
                             information in certain areas of the website. Local Chat does not filter, edit, publish or
@@ -61,13 +61,13 @@ export default function TermsPage() {
                             be considered inappropriate, offensive or causes breach of these Terms and Conditions.
                         </p>
 
-                        <h2 className='text-primary pt-4 text-xl font-medium'>Disclaimer</h2>
+                        <h2 className="text-primary pt-4 text-xl font-medium">Disclaimer</h2>
                         <p>
                             To the maximum extent permitted by applicable law, we exclude all representations,
                             warranties and conditions relating to our website and the use of this website. Nothing in
                             this disclaimer will:
                         </p>
-                        <ul className='list-disc space-y-1 pl-5'>
+                        <ul className="list-disc space-y-1 pl-5">
                             <li>limit or exclude our or your liability for death or personal injury;</li>
                             <li>limit or exclude our or your liability for fraud or fraudulent misrepresentation;</li>
                             <li>
