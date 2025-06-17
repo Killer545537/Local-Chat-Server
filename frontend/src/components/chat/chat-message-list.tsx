@@ -1,4 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+'use client';
+
+import { useEffect, useRef } from 'react';
 import { ChatMessage } from '@/components/chat/chat-message';
 
 interface Message {
@@ -20,15 +22,17 @@ export const ChatMessageList = ({ messages, currentUserId }: ChatMessageListProp
     }, [messages]);
 
     return (
-        <div className="mt-4 mb-4 flex-grow overflow-y-auto rounded border p-2 bg-gray-50">
-            {messages.length === 0 && <p className="text-gray-400">No messages yet.</p>}
-            {messages.map((msg, index) => (
-                <ChatMessage
-                    key={index}
-                    message={msg}
-                    isCurrentUser={msg.sender.id === currentUserId}
-                />
-            ))}
+        <div className="flex-grow overflow-y-auto px-4 py-4 bg-background custom-scrollbar">
+            {messages.length === 0 && (
+                <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground text-sm">No messages yet. Start the conversation!</p>
+                </div>
+            )}
+            <div className="space-y-3">
+                {messages.map((msg, index) => (
+                    <ChatMessage key={index} message={msg} isCurrentUser={msg.sender.id === currentUserId} />
+                ))}
+            </div>
             <div ref={messagesEndRef} />
         </div>
     );

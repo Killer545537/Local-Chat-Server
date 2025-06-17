@@ -1,8 +1,7 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card } from '@/components/ui/card';
 import { ChatHeader } from '@/components/chat/chat-header';
 import { ChatMessageList } from '@/components/chat/chat-message-list';
 import { ChatInput } from '@/components/chat/chat-input';
@@ -32,10 +31,7 @@ const ChatContent = () => {
         const websocketUrl = `ws://${config.apiUrl}/ws?userid=${userId}&username=${username}`;
         setConnectionStatus('Connecting...');
 
-        if (
-            ws.current &&
-            (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING)
-        ) {
+        if (ws.current && (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING)) {
             ws.current.close();
         }
 
@@ -67,14 +63,10 @@ const ChatContent = () => {
             }
         };
         ws.current.onerror = () => setConnectionStatus('Error');
-        ws.current.onclose = (event) =>
-            setConnectionStatus(`Closed: ${event.reason || 'No reason specified'}`);
+        ws.current.onclose = (event) => setConnectionStatus(`Closed: ${event.reason || 'No reason specified'}`);
 
         return () => {
-            if (
-                ws.current?.readyState === WebSocket.OPEN ||
-                ws.current?.readyState === WebSocket.CONNECTING
-            ) {
+            if (ws.current?.readyState === WebSocket.OPEN || ws.current?.readyState === WebSocket.CONNECTING) {
                 ws.current?.close();
             }
         };
@@ -94,45 +86,62 @@ const ChatContent = () => {
 
     if (!userId || !username) {
         return (
-            <div className="container mx-auto p-4">
-                <h1 className="mb-4 text-2xl font-bold">Chat</h1>
-                <p className="text-red-500">User ID not provided in URL. Cannot connect to chat.</p>
-                <p>Please log in again or ensure the User ID is passed correctly.</p>
+            <div className="flex h-screen w-screen items-center justify-center bg-background">
+                <div className="rounded-2xl bg-card p-8 shadow-2xl border border-border">
+                    <h1 className="mb-4 text-2xl font-semibold text-foreground">Chat</h1>
+                    <p className="text-destructive mb-2">User ID not provided in URL. Cannot connect to chat.</p>
+                    <p className="text-muted-foreground">Please log in again or ensure the User ID is passed correctly.</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="flex h-screen w-screen items-center justify-center bg-muted">
-            <Card className="flex h-[90vh] w-full max-w-2xl flex-col rounded-none border-0 shadow-lg">
+        <div className="flex h-screen w-screen items-center justify-center bg-background p-4">
+            <div className="flex h-[85vh] w-full max-w-4xl flex-col rounded-2xl bg-card shadow-2xl border border-border overflow-hidden">
                 <ChatHeader room={room} />
                 <div className="flex-1 overflow-hidden">
                     <ChatMessageList messages={messages} currentUserId={userId} />
                 </div>
-                <div className="border-t p-3">
+                <div className="border-t border-border bg-card/50">
                     <ChatInput onSendMessage={handleSendMessage} />
                 </div>
-                <div className="px-3 pb-2 pt-1 text-xs text-muted-foreground">
-                    WebSocket Status:{' '}
-                    <span
-                        className={
-                            connectionStatus === 'Connected'
-                                ? 'text-green-500'
-                                : connectionStatus === 'Connecting...'
-                                    ? 'text-yellow-500'
-                                    : 'text-red-500'
-                        }
-                    >
-                                        {connectionStatus}
-                                    </span>
+                <div className="px-4 pb-3 pt-2 text-xs text-muted-foreground bg-card/50 border-t border-border">
+                    <div className="flex items-center justify-between">
+            <span>
+              Status:{' '}
+                <span
+                    className={
+                        connectionStatus === 'Connected'
+                            ? 'text-chart-2 font-medium'
+                            : connectionStatus === 'Connecting...'
+                                ? 'text-chart-3 font-medium'
+                                : 'text-destructive font-medium'
+                    }
+                >
+                {connectionStatus}
+              </span>
+            </span>
+                        <span className="text-muted-foreground/70">
+              {messages.length} message{messages.length !== 1 ? 's' : ''}
+            </span>
+                    </div>
                 </div>
-            </Card>
+            </div>
         </div>
     );
 };
 
 const Page = () => (
-    <Suspense fallback={<div>Loading chat...</div>}>
+    <Suspense
+        fallback={
+            <div className="flex h-screen w-screen items-center justify-center bg-background">
+                <div className="rounded-2xl bg-card p-8 shadow-2xl border border-border">
+                    <div className="text-muted-foreground">Loading chat...</div>
+                </div>
+            </div>
+        }
+    >
         <ChatContent />
     </Suspense>
 );
