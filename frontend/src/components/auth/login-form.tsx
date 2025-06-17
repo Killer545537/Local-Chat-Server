@@ -19,7 +19,7 @@ export const LoginForm = () => {
             password: (form.elements.namedItem('password') as HTMLInputElement).value,
         };
 
-        const res = await fetch(`${config.apiUrl}/api/auth/login`, {
+        const res = await fetch(`http://${config.apiUrl}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),

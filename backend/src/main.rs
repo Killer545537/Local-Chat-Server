@@ -92,9 +92,9 @@ async fn main() -> Result<()> {
             )
             .service(
                 spa()
-                    .index_file("frontend/out/index.html")
+                    .index_file("./out/index.html")
                     .static_resources_mount("/")
-                    .static_resources_location("frontend/out")
+                    .static_resources_location("./out")
                     .finish(),
             )
     })

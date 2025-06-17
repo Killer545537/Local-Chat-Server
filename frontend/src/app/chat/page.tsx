@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { ChatHeader } from '@/components/chat/chat-header';
 import { ChatMessageList } from '@/components/chat/chat-message-list';
 import { ChatInput } from '@/components/chat/chat-input';
+import { config } from '@/app/config';
 
 interface Message {
     sender: { id: string; name: string };
@@ -28,7 +29,7 @@ const ChatContent = () => {
             return;
         }
 
-        const websocketUrl = `ws://192.168.29.36:8080/ws?userid=${userId}&username=${username}`;
+        const websocketUrl = `ws://${config.apiUrl}/ws?userid=${userId}&username=${username}`;
         setConnectionStatus('Connecting...');
 
         if (
